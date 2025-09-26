@@ -1,4 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+
+// --- 솔라나 지갑 어댑터 관련 import 추가 ---
+import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
+import { clusterApiUrl } from '@solana/web3.js';
+import { useWallet } from '@solana/wallet-adapter-react';
+// -----------------------------------------
+
 import { CheckCircle } from 'lucide-react';
 import { initialRecentActivity } from './constants/mockData';
 import LoginPage from './pages/LoginPage';
@@ -8,9 +18,16 @@ import ProfilePage from './pages/ProfilePage';
 import ThemeToggle from './components/layout/ThemeToggle';
 import Modal from './components/common/Modal';
 
-export default function App() {
+// --- CSS import 추가 ---
+import '@solana/wallet-adapter-react-ui/styles.css';
+// --------------------
+// 실제 애플리케이션 로직을 담을 컴포넌트를 분리합니다.
+function AppContent() {
+  // 1. useWallet 훅이 지갑의 연결 상태를 실시간으로 감시합니다.
+    const { connected } = useWallet();
+
   const [theme, setTheme] = useState('dark');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentView, setCurrentView] = useState('dashboard');
   const [profileUser, setProfileUser] = useState(null);
   const [timerMode, setTimerMode] = useState('focus');
@@ -29,7 +46,7 @@ export default function App() {
     }
   }, [theme]);
 
-  const handleLogin = () => setIsLoggedIn(true);
+  // const handleLogin = () => setIsLoggedIn(true);
   
   const handleStartFocus = (duration) => {
     setFocusDuration(duration);
@@ -84,9 +101,9 @@ export default function App() {
   }
 
   const renderContent = () => {
-      if (!isLoggedIn) {
-          return <LoginPage onLogin={handleLogin} />;
-      }
+      if (!connected) {
+            return <LoginPage />; // onLogin prop 제거
+        }
       switch (currentView) {
           case 'focus':
               return <FocusPage onExit={handleExitFocus} duration={focusDuration} onComplete={handleSessionComplete} />;
@@ -108,7 +125,7 @@ export default function App() {
 
   return (
     <main className="bg-gray-100 dark:bg-gray-900 dark:bg-gradient-to-tr dark:from-gray-900 dark:to-slate-800 text-gray-900 dark:text-white min-h-screen font-sans transition-colors duration-300">
-      {isLoggedIn && <ThemeToggle theme={theme} setTheme={setTheme} />}
+      {connected  && <ThemeToggle theme={theme} setTheme={setTheme} />}
       <div className="w-full h-full">
           {renderContent()}
           {showCompletionModal && (
@@ -124,4 +141,28 @@ export default function App() {
       </div>
     </main>
   );
+}
+
+// 최상위 App 컴포넌트에서 Wallet Provider들을 설정합니다.
+export default function App() {
+    const network = WalletAdapterNetwork.Devnet;
+    const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+    const wallets = useMemo(
+        () => [
+            new PhantomWalletAdapter(),
+            new SolflareWalletAdapter(),
+        ],
+        [network]
+    );
+
+    return (
+        <ConnectionProvider endpoint={endpoint}>
+            <WalletProvider wallets={wallets} autoConnect>
+                <WalletModalProvider>
+                    {/* 이제 AppContent는 Provider들 내부에 렌더링되므로, useWallet을 사용할 수 있습니다. */}
+                    <AppContent />
+                </WalletModalProvider>
+            </WalletProvider>
+        </ConnectionProvider>
+    );
 }
