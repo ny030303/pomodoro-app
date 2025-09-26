@@ -1,0 +1,27 @@
+# Rust / Anchor 🦀
+# ----------------
+# 컴파일된 빌드 결과물
+/target/
+
+# Node.js / TypeScript 📜
+# ----------------
+# 의존성 모듈
+/node_modules/
+# 환경 변수 파일 (비밀 키 등을 포함할 수 있음)
+.env
+.env.local
+.env.*.local
+# 로그 파일
+npm-debug.log*
+yarn-error.log
+
+# 운영체제(OS) 및 에디터 관련 파일 💻
+# ----------------
+# macOS
+.DS_Store
+# Windows
+Thumbs.db
+# VSCode
+.vscode/
+# JetBrains IDEs
+.idea/

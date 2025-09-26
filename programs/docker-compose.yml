@@ -1,0 +1,21 @@
+# ./docker-compose.yml
+
+version: '3.8'
+
+services:
+  solana_dev:
+    container_name: solana_dev_env
+    build:
+      context: .
+      dockerfile: solana-dev.Dockerfile
+    
+    # 현재 프로젝트 폴더 전체를 컨테이너 내부의 /app 폴더와 연결합니다.
+    # 이렇게 하면 PC에서 코드를 수정하면 컨테이너 안에도 바로 반영됩니다.
+    volumes:
+      - .:/app
+    
+    # 개발 작업을 위해 컨테이너를 계속 실행 상태로 유지합니다.
+    command: sleep infinity
+    environment:
+      ANCHOR_PROVIDER_URL: http://localhost:8899
+      ANCHOR_WALLET: /root/.config/solana/id.json

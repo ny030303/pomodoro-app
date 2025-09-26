@@ -1,0 +1,167 @@
+{
+  "address": "E4Ctii4zDZ89quHkeDhgLkJkV9xynWgwcpnF1Fbtdhht",
+  "metadata": {
+    "name": "provenance_project",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "log_effort",
+      "discriminator": [
+        24,
+        245,
+        197,
+        125,
+        30,
+        114,
+        225,
+        149
+      ],
+      "accounts": [
+        {
+          "name": "log_account",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "effort_data",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "purchase_item",
+      "discriminator": [
+        38,
+        91,
+        106,
+        119,
+        28,
+        153,
+        35,
+        183
+      ],
+      "accounts": [
+        {
+          "name": "buyer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "buyer_token_account",
+          "writable": true
+        },
+        {
+          "name": "treasury_token_account",
+          "writable": true
+        },
+        {
+          "name": "purchase_log",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "item_id",
+          "type": "u32"
+        },
+        {
+          "name": "price",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "EffortLog",
+      "discriminator": [
+        124,
+        78,
+        250,
+        69,
+        33,
+        23,
+        157,
+        69
+      ]
+    },
+    {
+      "name": "PurchaseLog",
+      "discriminator": [
+        187,
+        118,
+        10,
+        243,
+        13,
+        251,
+        181,
+        41
+      ]
+    }
+  ],
+  "types": [
+    {
+      "name": "EffortLog",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "effort_data",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PurchaseLog",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "buyer",
+            "type": "pubkey"
+          },
+          {
+            "name": "item_id",
+            "type": "u32"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ]
+}

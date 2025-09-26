@@ -1,0 +1,22 @@
+[package]
+name = "provenance_project"
+version = "0.1.0"
+description = "Created with Anchor"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "provenance_project"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-spl/idl-build"]
+
+
+[dependencies]
+anchor-lang = "0.31.1"  # 현재 사용 중인 Anchor 버전과 맞춰주세요
+anchor-spl = "0.31.1"   # anchor-spl 버전도 anchor-lang과 동일하게 지정 권장
