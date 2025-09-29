@@ -1,7 +1,11 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token, Transfer};
+// use anchor_spl::token::{self, Token, Transfer};
+use anchor_spl::{
+    associated_token::AssociatedToken,
+    token::{self, Mint, Token, TokenAccount, Transfer},
+};
 
-declare_id!("E4Ctii4zDZ89quHkeDhgLkJkV9xynWgwcpnF1Fbtdhht");
+declare_id!("9GVN9L9XKAD99GMKhs4qzTGYhHwqch9yvqsxnrPBMxZH");
 
 #[program]
 pub mod provenance_project {
@@ -10,10 +14,25 @@ pub mod provenance_project {
     pub fn log_effort(ctx: Context<LogEffort>, effort_data: String) -> Result<()> {
         let log_account = &mut ctx.accounts.log_account;
         let user = &ctx.accounts.user;
+        let authority = &ctx.accounts.authority; // authority를 가져옵니다.
 
-        log_account.authority = *user.key;
+        log_account.authority = *authority.key; // 생성 주체를 authority로 기록
+        log_account.user = *user.key; // 노력의 주체는 user로 기록
         log_account.timestamp = Clock::get()?.unix_timestamp;
         log_account.effort_data = effort_data;
+
+        // ✅ --- 토큰 보상 로직 추가 ---
+        let amount = 10 * 10u64.pow(ctx.accounts.mint.decimals as u32); // 10 $EFFORT (소수점 고려)
+
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.from_token_account.to_account_info(),
+            to: ctx.accounts.to_token_account.to_account_info(),
+            authority: ctx.accounts.authority.to_account_info(),
+        };
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+
+        token::transfer(cpi_ctx, amount)?;
 
         Ok(())
     }
@@ -73,18 +92,42 @@ pub struct PurchaseItem<'info> {
 // 기존 LogEffort 구조체와 Context는 그대로 유지
 #[account]
 pub struct EffortLog {
-    pub authority: Pubkey,
+    pub authority: Pubkey, // 생성 주체 (서버 지갑)
+    pub user: Pubkey,      // 노력의 주체 (사용자)
     pub timestamp: i64,
     pub effort_data: String,
 }
 
 #[derive(Accounts)]
 pub struct LogEffort<'info> {
-    #[account(init, payer = user, space = 102)]
+    #[account(init, payer = authority, space = 8 + 32 + 32 + 8 + 100)]
     pub log_account: Account<'info, EffortLog>,
-
+    /// CHECK: This is the user who the effort is for. Not a signer.
+    pub user: AccountInfo<'info>, // <--- Signer에서 AccountInfo로 변경
     #[account(mut)]
-    pub user: Signer<'info>,
+    pub authority: Signer<'info>, // <--- 서버 지갑(수수료 지불자)을 authority로 추가
 
+    // ✅ --- 토큰 전송에 필요한 계정들 추가 ---
+    #[account(mut)]
+    pub mint: Account<'info, Mint>, // $EFFORT 토큰의 민트 계정
+
+    #[account(
+        mut,
+        // 서버 금고 주소를 여기에 하드코딩하거나, 다른 방식으로 가져올 수 있습니다.
+        // constraint = from_token_account.owner == authority.key()
+    )]
+    pub from_token_account: Account<'info, TokenAccount>, // 서버의 토큰 금고
+
+    #[account(
+        init_if_needed, // 사용자 토큰 계정이 없으면 새로 생성
+        payer = authority,
+        associated_token::mint = mint,
+        associated_token::authority = user,
+    )]
+    pub to_token_account: Account<'info, TokenAccount>, // 사용자의 토큰 계정
+
+    // ✅ --- 시스템 프로그램들 추가 ---
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
 }

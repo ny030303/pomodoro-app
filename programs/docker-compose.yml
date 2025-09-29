@@ -16,6 +16,9 @@ services:
     
     # 개발 작업을 위해 컨테이너를 계속 실행 상태로 유지합니다.
     command: sleep infinity
+    ports:
+    - "8899:8899" # RPC 포트
+    - "8900:8900" # Faucet 포트
     environment:
       ANCHOR_PROVIDER_URL: http://localhost:8899
       ANCHOR_WALLET: /root/.config/solana/id.json

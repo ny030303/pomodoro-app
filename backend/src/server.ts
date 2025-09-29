@@ -1,22 +1,45 @@
 // backend/src/server.ts
-
-import express from 'express';
-import type { Request, Response } from 'express'; // 'type' 키워드를 사용해 분리
+import express, { type Request, type Response } from 'express';
+import cors from 'cors';
+import { checkSolanaConnection, logEffortForUser } from './solana.js'; // logEffortForUser 추가
+import { PublicKey } from '@solana/web3.js';
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 3001; // 백엔드 서버는 3001번 포트 사용
 
-// JSON 요청 본문을 파싱하기 위한 미들웨어
-app.use(express.json());
+// 미들웨어 설정
+app.use(cors()); // 모든 출처의 요청을 허용 (개발 환경)
+app.use(express.json()); // JSON 요청 본문을 파싱
 
-// 기본 헬스 체크 엔드포인트
-app.get('/api/health', (req: Request, res: Response) => {
-  res.status(200).json({ status: 'ok', message: 'Backend server is running!' });
+// 뽀모도로 완료 기록 및 토큰 보상을 위한 API 엔드포인트
+app.post('/api/log-effort', async (req: Request, res: Response) => {
+  try {
+    const { userPublicKey } = req.body;
+
+    if (!userPublicKey) {
+      return res.status(400).json({ error: 'User public key is required.' });
+    }
+
+    // solana.ts에 정의할 함수를 호출하여 트랜잭션을 처리
+    const transactionSignature = await logEffortForUser(new PublicKey(userPublicKey));
+
+    res.status(200).json({ 
+        message: 'Effort logged successfully!',
+        signature: transactionSignature 
+    });
+
+  } catch (error) {
+    console.error('Error logging effort:', error);
+    res.status(500).json({ error: 'Failed to log effort.' });
+  }
 });
 
-// TODO: 여기에 뽀모도로 세션 관련 API 엔드포인트를 추가할 예정입니다.
-// 예: POST /api/sessions, GET /api/sessions/:userAddress 등
+// API 헬스 체크를 위한 기본 라우트
+app.get('/api/health', (req: Request, res: Response) => {
+  res.status(200).json({ status: 'ok', message: 'API server is running!' });
+});
 
+// 서버 시작
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
 });
