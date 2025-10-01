@@ -19,5 +19,5 @@ idl-build = ["anchor-spl/idl-build"]
 
 [dependencies]
 anchor-lang = { version = "0.31.1", features = ["init-if-needed"] }  # 현재 사용 중인 Anchor 버전과 맞춰주세요 
-anchor-spl = "0.31.1"   # anchor-spl 버전도 anchor-lang과 동일하게 지정 권장
-mpl-token-metadata = { version = "1.13.1", features = ["no-entrypoint"] }
+anchor-spl = {version = "0.31.1", features = ["metadata"]}  # anchor-spl 버전도 anchor-lang과 동일하게 지정 권장
+# mpl-token-metadata = { version = "1.13.1", features = ["no-entrypoint"] }

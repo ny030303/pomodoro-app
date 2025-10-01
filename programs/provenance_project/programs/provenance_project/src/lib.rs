@@ -5,7 +5,7 @@ use anchor_spl::{
     token::{self, Mint, Token, TokenAccount, Transfer},
 };
 
-declare_id!("9GVN9L9XKAD99GMKhs4qzTGYhHwqch9yvqsxnrPBMxZH");
+declare_id!("EzosdZfmUqa4hYH7iT2dyCJA45kfAtoGp7VTKq2NYJAP");
 
 #[program]
 pub mod provenance_project {
@@ -37,25 +37,37 @@ pub mod provenance_project {
         Ok(())
     }
 
-    // purchase_item 함수 추가
-    pub fn purchase_item(ctx: Context<PurchaseItem>, item_id: u32, price: u64) -> Result<()> {
-        // buyer가 보유한 토큰을 treasury로 전송
-        let cpi_accounts = Transfer {
-            from: ctx.accounts.buyer_token_account.to_account_info(),
-            to: ctx.accounts.treasury_token_account.to_account_info(),
-            authority: ctx.accounts.buyer.to_account_info(),
-        };
-        let cpi_program = ctx.accounts.token_program.to_account_info();
-        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+    // ✅ purchase_item 함수 수정
+    pub fn purchase_item(ctx: Context<PurchaseItem>, item_id: u32, price: u64, name: String, symbol: String, uri: String) -> Result<()> {
+        // 1. $EFFORT 토큰을 서버 금고로 전송 (기존 로직)
+        let transfer_cpi = CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            Transfer {
+                from: ctx.accounts.buyer_token_account.to_account_info(),
+                to: ctx.accounts.treasury_token_account.to_account_info(),
+                authority: ctx.accounts.buyer.to_account_info(),
+            },
+        );
+        token::transfer(transfer_cpi, price)?;
 
-        token::transfer(cpi_ctx, price)?;
+        // 2. 새로운 NFT 민트 계정 생성 및 초기화 (CPI)
+        // (이 부분은 Anchor가 init 제약조건으로 처리)
 
-        // 구매 내역 기록
-        let purchase_log = &mut ctx.accounts.purchase_log;
-        purchase_log.buyer = *ctx.accounts.buyer.key;
-        purchase_log.item_id = item_id;
-        purchase_log.timestamp = Clock::get()?.unix_timestamp;
+        // 3. 사용자에게 새로 만든 NFT 1개 발행 (CPI)
+        let mint_to_cpi = CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            token::MintTo {
+                mint: ctx.accounts.nft_mint.to_account_info(),
+                to: ctx.accounts.user_nft_account.to_account_info(),
+                authority: ctx.accounts.authority.to_account_info(),
+            },
+        );
+        token::mint_to(mint_to_cpi, 1)?;
 
+        // 4. Metaplex를 호출하여 NFT 메타데이터 생성 (CPI)
+        // ... (복잡한 Metaplex CPI 로직이 여기에 들어갑니다. 우선은 개념만 이해합니다.)
+        
+        // ... (구매 기록 로직은 그대로)
         Ok(())
     }
 }
@@ -71,21 +83,50 @@ pub struct PurchaseLog {
 #[derive(Accounts)]
 pub struct PurchaseItem<'info> {
     #[account(mut)]
-    pub buyer: Signer<'info>,
+    pub buyer: Signer<'info>, // 구매자 (사용자)
 
-    /// CHECK: Buyer token account, unchecked but used safely in token::transfer CPI
     #[account(mut)]
-    pub buyer_token_account: AccountInfo<'info>,
+    pub authority: Signer<'info>, // 아이템 발행 권한자 (서버 지갑)
 
-    /// CHECK: Treasury token account, unchecked but used safely in token::transfer CPI
+    // --- $EFFORT 토큰 관련 계정 ---
     #[account(mut)]
-    pub treasury_token_account: AccountInfo<'info>,
+    pub buyer_token_account: Account<'info, TokenAccount>, // 구매자의 $EFFORT 지갑
+    #[account(mut)]
+    pub treasury_token_account: Account<'info, TokenAccount>, // $EFFORT를 받을 서버 금고
 
-    #[account(init, payer = buyer, space = 8 + 32 + 4 + 8)]
-    pub purchase_log: Account<'info, PurchaseLog>,
+    // --- 새로 발행할 NFT 관련 계정 ---
+    #[account(
+        init,
+        payer = authority,
+        mint::decimals = 0,
+        mint::authority = authority,
+        mint::freeze_authority = authority,
+    )]
+    pub nft_mint: Account<'info, Mint>, // NFT 민트 계정 (새로 생성)
 
+    #[account(
+        init_if_needed,
+        payer = authority,
+        associated_token::mint = nft_mint,
+        associated_token::authority = buyer,
+    )]
+    pub user_nft_account: Account<'info, TokenAccount>, // NFT를 받을 사용자의 토큰 계정
+
+    // --- Metaplex 관련 계정 ---
+    /// CHECK: Metaplex metadata account
+    #[account(mut)]
+    pub metadata_account: AccountInfo<'info>,
+    /// CHECK: Metaplex master edition account
+    #[account(mut)]
+    pub master_edition_account: AccountInfo<'info>,
+    
+    // --- 프로그램들 ---
     pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
+    pub rent: Sysvar<'info, Rent>,
+    /// CHECK: Metaplex Token Metadata Program
+    pub token_metadata_program: AccountInfo<'info>,
 }
 
 
