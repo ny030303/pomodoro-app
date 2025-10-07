@@ -15,4 +15,10 @@ export default defineConfig({
   define: {
     global: 'window',
   },
+  server: {
+    fs: {
+      // 프로젝트 루트와 node_modules 폴더까지 접근을 허용해줍니다.
+      allow: ['.', 'node_modules'],
+    },
+  },
 })

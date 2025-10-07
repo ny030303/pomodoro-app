@@ -2,7 +2,7 @@
 
 import React from 'react';
 import WalletConnectButton from '../components/auth/WalletConnectButton'; 
-
+import MyScene from '../components/common/MyScene'; 
 // LoginPage 컴포넌트
 // 지갑 연결 상태는 App.jsx에서 전역으로 관리되므로 별도의 props가 필요 없습니다.
 export default function LoginPage() {
@@ -12,6 +12,9 @@ export default function LoginPage() {
                 
                 {/* 로고와 제목 */}
                 <div className="mb-8">
+                     
+                    <MyScene />
+                    {/* <MyCharacter/> */}
                     {/* SVG 그래디언트 정의 */}
                     <svg width="0" height="0" style={{ position: 'absolute' }}>
                         <defs>
