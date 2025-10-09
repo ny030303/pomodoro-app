@@ -8,12 +8,12 @@ import MyScene from '../components/common/MyScene';
 export default function LoginPage() {
     return (
         <div className="w-full min-h-screen flex flex-col justify-center items-center text-center p-4 bg-gray-100 dark:bg-gray-900">
+            
+            <MyScene />
             <div className="relative p-8 sm:p-12 rounded-3xl max-w-md w-full bg-white dark:bg-slate-800 shadow-2xl">
                 
                 {/* 로고와 제목 */}
                 <div className="mb-8">
-                     
-                    <MyScene />
                     {/* <MyCharacter/> */}
                     {/* SVG 그래디언트 정의 */}
                     <svg width="0" height="0" style={{ position: 'absolute' }}>
