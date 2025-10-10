@@ -9,7 +9,7 @@ const PARTS = [
 
 const AssetDir = "assets/NewProject_1_texture/Gemini_Generated_Image_6153bl6153bl6153/";
 const characterUrl = "/assets/NewProject_1_";
-const baseWidth = 1000;
+const baseWidth = 900;
 const baseHeight = 200;
 
 const DragonBonesComponent = () => {

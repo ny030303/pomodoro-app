@@ -3,6 +3,7 @@ import { Link, Info } from 'lucide-react';
 import { TIMER_CONFIG } from '../../constants';
 import { formatTimeAgo } from '../../lib/utils';
 import Tooltip from '../common/Tooltip';
+import MyScene from '../common/MyScene';
 
 export default function TimerTab({ onStart, timerMode, setTimerMode, completedSessions, weeklyGoal, recentActivity }) {
     const { duration, label } = TIMER_CONFIG[timerMode];
@@ -24,16 +25,18 @@ export default function TimerTab({ onStart, timerMode, setTimerMode, completedSe
                 ))}
             </div>
             {/* Timer Circle */}
-            <div className="relative w-64 h-64 md:w-80 md:h-80 mb-8">
-                <svg className="w-full h-full" viewBox="0 0 100 100">
+            <div className="relative w-64 h-64 md:w-50 md:h-40 mb-8">
+                {/* <svg className="w-full h-full" viewBox="0 0 100 100">
                     <circle className="text-gray-200 dark:text-gray-700" strokeWidth="4" stroke="currentColor" fill="transparent" r="48" cx="50" cy="50" />
                     <circle className="text-green-500 dark:text-green-400" strokeWidth="4" stroke="currentColor" fill="transparent" r="48" cx="50" cy="50" strokeDasharray="301.59" strokeDashoffset="0" strokeLinecap="round" style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }} />
-                </svg>
+                </svg> */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <div className="text-5xl md:text-7xl font-bold text-gray-900 dark:text-white">{minutes}:{seconds}</div>
+                    <div className="text-6xl md:text-7xl font-bold text-gray-900 dark:text-white">{minutes}:{seconds}</div>
                     <div className="text-lg text-gray-500 dark:text-gray-400">{label}</div>
                 </div>
             </div>
+            
+                    <MyScene />
             <button onClick={() => onStart(duration)} className="bg-green-500 dark:bg-green-400 text-gray-900 font-bold py-4 px-16 rounded-lg text-xl transition-colors duration-200 hover:bg-green-600 dark:hover:bg-green-500">
                 START
             </button>
