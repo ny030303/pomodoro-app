@@ -5,7 +5,7 @@ use anchor_spl::{
     token::{self, Mint, Token, TokenAccount, Transfer},
 };
 
-declare_id!("EzosdZfmUqa4hYH7iT2dyCJA45kfAtoGp7VTKq2NYJAP");
+declare_id!("CeHSRR3qLQjzBgmAeat75wuoeynUagCCwR1nbUNTG76T");
 
 #[program]
 pub mod provenance_project {

@@ -10,7 +10,7 @@ cpi = ["no-entrypoint"]
 no-entrypoint = []
 
 [programs.localnet]
-# provenance_project  = "E4Ctii4zDZ89quHkeDhgLkJkV9xynWgwcpnF1Fbtdhht"
+# provenance_project  = "CeHSRR3qLQjzBgmAeat75wuoeynUagCCwR1nbUNTG76T"
 
 [registry]
 url = "https://api.apr.dev"

@@ -9,6 +9,7 @@ import idl from '../../programs/provenance_project/target/idl/provenance_project
 
 import type { ProvenanceProject } from '../../programs/provenance_project/target/types/provenance_project.js';
 import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from '@solana/spl-token'; // 추가
+import { mintEffortTokenToUser } from './mintEffortToken.js';
 
 
 // 로컬 솔라나 검증기 RPC URL
@@ -48,12 +49,15 @@ export const checkSolanaConnection = async () => {
     }
 }
 
-const MINT_ADDRESS = new PublicKey("DPGSkzUMMkWfGyYzhAjjbUod6Cgx9pNHitiedwnx2q6q");
-const SERVER_TOKEN_ACCOUNT_ADDRESS = new PublicKey("EP7nf2ehoo84g5gyykwcZmW91j6814hSGNqpjH3e51qv");
+export const MINT_ADDRESS = new PublicKey("CpyfUoLpFjsCMzdWVDVEKymatW6Q3Si1AWHasvidA59M");
+export const SERVER_TOKEN_ACCOUNT_ADDRESS = new PublicKey("2SHqkgfAACoRKxY9C7mrCyF3C3NRw3kpQYb77TmqDM8e");
 
 export const logEffortForUser = async (userPublicKey: PublicKey): Promise<string> => {
     console.log(`Logging effort for user: ${userPublicKey.toBase58()}`);
     
+    // 1. 유저에게 토큰 발행 (예: 1 EFFORT)
+  // await mintEffortTokenToUser(userPublicKey, 1);
+
     const serverKeypair = await getServerKeypair();
     const wallet = new Wallet(serverKeypair);
     // 2. 솔라나 RPC와 지갑을 Anchor가 이해할 수 있는 형태로 연결
@@ -86,3 +90,4 @@ export const logEffortForUser = async (userPublicKey: PublicKey): Promise<string
     console.log(`✅ Transaction confirmed with signature: ${signature}`);
     return signature;
 };
+
