@@ -1,7 +1,22 @@
+// src/components/common/Heatmap.jsx (최종 수정본)
+
 import React, { useMemo } from 'react';
 import Tooltip from './Tooltip';
 
 export default function Heatmap({ data }) {
+    // ✅ 1. 전달받은 data 배열을 빠른 조회를 위한 Map 형태로 변환합니다.
+    // 이 작업은 data가 변경될 때만 실행됩니다.
+    const dataMap = useMemo(() => {
+        const map = new Map();
+        if (data) {
+            data.forEach(item => {
+                map.set(item.date, item.count);
+            });
+        }
+        return map;
+    }, [data]);
+
+    // --- (아래 코드는 기존과 동일) ---
     const days = useMemo(() => {
         const dayArray = [];
         const startDate = new Date();
@@ -33,7 +48,8 @@ export default function Heatmap({ data }) {
                 <div className="grid grid-flow-col grid-rows-7 gap-1">
                     {days.map((date, i) => {
                         const dateString = date.toISOString().split('T')[0];
-                        const count = data[dateString] || 0;
+                        // ✅ 2. 변환된 Map에서 효율적으로 count를 가져옵니다.
+                        const count = dataMap.get(dateString) || 0;
                         return (
                             <Tooltip key={i} text={`${count} sessions on ${dateString}`}>
                                 <div className={`w-4 h-4 rounded-sm ${getColor(count)}`}></div>

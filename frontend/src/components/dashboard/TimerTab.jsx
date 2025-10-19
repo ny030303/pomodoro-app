@@ -5,8 +5,11 @@ import { formatTimeAgo } from '../../lib/utils';
 import Tooltip from '../common/Tooltip';
 import MyScene from '../common/MyScene';
 
-export default function TimerTab({ onStart, timerMode, setTimerMode, completedSessions, weeklyGoal, recentActivity }) {
-    const { duration, label } = TIMER_CONFIG[timerMode];
+export default function TimerTab({ handleStartFocus, timerMode, setTimerMode, completedSessions, weeklyGoal, recentActivity }) {
+    // const { duration, label } = TIMER_CONFIG[timerMode];
+    const label = "test";
+    // ✅ 수정 후 (테스트용 3초)
+    const duration = timerMode === 'focus' ? 3 : 2; // 집중은 3초, 휴식은 2초로 테스트
     const minutes = Math.floor(duration / 60).toString().padStart(2, '0');
     const seconds = (duration % 60).toString().padStart(2, '0');
     const timerModes = Object.keys(TIMER_CONFIG);
@@ -37,7 +40,7 @@ export default function TimerTab({ onStart, timerMode, setTimerMode, completedSe
             </div>
             
                     <MyScene />
-            <button onClick={() => onStart(duration)} className="bg-green-500 dark:bg-green-400 text-gray-900 font-bold py-4 px-16 rounded-lg text-xl transition-colors duration-200 hover:bg-green-600 dark:hover:bg-green-500">
+            <button onClick={() => handleStartFocus(duration)} className="bg-green-500 dark:bg-green-400 text-gray-900 font-bold py-4 px-16 rounded-lg text-xl transition-colors duration-200 hover:bg-green-600 dark:hover:bg-green-500">
                 START
             </button>
             {/* Weekly Goal & Recent Activity Wrapper */}

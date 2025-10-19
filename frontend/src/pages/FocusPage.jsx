@@ -3,18 +3,34 @@ import React, { useState, useEffect } from 'react';
 export default function FocusPage({ onExit, duration, onComplete }) {
     const [time, setTime] = useState(duration);
     const [showExitPopup, setShowExitPopup] = useState(false);
+    // ✅ 1. 완료 처리가 이미 실행되었는지 추적하는 상태 변수 추가
+    const [isCompleted, setIsCompleted] = useState(false);
 
+    // ✅ 2. 타이머 로직을 위한 useEffect (컴포넌트 마운트 시 한 번만 실행)
     useEffect(() => {
-        if(time === 0) {
-            onComplete();
-            return;
-        }
-        const timer = setInterval(() => {
-            setTime(prev => (prev > 0 ? prev - 1 : 0));
+        // 타이머를 생성하고, 1초마다 시간을 1씩 감소시킴
+        const timerId = setInterval(() => {
+            setTime(prevTime => prevTime - 1);
         }, 1000);
-        return () => clearInterval(timer);
-    }, [time, onComplete]);
 
+        // 컴포넌트가 언마운트될 때 타이머를 정리(clean-up)
+        return () => clearInterval(timerId);
+    }, []); // 의존성 배열을 비워서 최초 렌더링 시에만 실행되도록 함
+
+    // ✅ 3. 시간이 다 되었는지 감지하는 별도의 useEffect
+    useEffect(() => {
+        // 시간이 0 이하가 되었고, "아직 완료 처리를 한 적이 없다면"
+        if (time <= 0 && !isCompleted) {
+            console.log("Timer finished. Calling onComplete...");
+            // 완료 처리를 했다고 표시 (무한 루프 방지)
+            setIsCompleted(true);
+            // 부모 컴포넌트의 완료 함수를 "딱 한 번만" 호출
+            onComplete();
+        }
+    }, [time, onComplete, isCompleted]); // 이 변수들이 바뀔 때마다 검사
+
+
+    // ESC 키 이벤트 리스너 (기존 코드와 동일)
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'Escape') {
@@ -25,9 +41,12 @@ export default function FocusPage({ onExit, duration, onComplete }) {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    const minutes = Math.floor(time / 60).toString().padStart(2, '0');
-    const seconds = (time % 60).toString().padStart(2, '0');
-    const progress = ((duration - time) / duration) * 301.59;
+    // 렌더링 로직 (기존 코드와 거의 동일)
+    // 💡 time이 음수가 되지 않도록 Math.max(0, time) 사용
+    const safeTime = Math.max(0, time);
+    const minutes = Math.floor(safeTime / 60).toString().padStart(2, '0');
+    const seconds = (safeTime % 60).toString().padStart(2, '0');
+    const progress = ((duration - safeTime) / duration) * 301.59;
 
     return (
         <div className="fixed inset-0 bg-gray-100 dark:bg-gray-900 flex flex-col items-center justify-center z-50">

@@ -10,7 +10,9 @@ import idl from '../../programs/provenance_project/target/idl/provenance_project
 import type { ProvenanceProject } from '../../programs/provenance_project/target/types/provenance_project.js';
 import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from '@solana/spl-token'; // 추가
 import { mintEffortTokenToUser } from './mintEffortToken.js';
-
+export const PROGRAM_ID = new PublicKey("CeHSRR3qLQjzBgmAeat75wuoeynUagCCwR1nbUNTG76T");
+export const MINT_ADDRESS = new PublicKey("7ykAXH2fidNiTeHjGfZcxMafa2XWfauskghcG6vDDPjT");
+export const SERVER_TOKEN_ACCOUNT_ADDRESS = new PublicKey("8EMfz6MbpXchvzZiAAtKed7AW7eN86bFhaA2bfpjHQNr");
 
 // 로컬 솔라나 검증기 RPC URL
 const SOLANA_RPC_URL = 'http://127.0.0.1:8899';
@@ -49,8 +51,8 @@ export const checkSolanaConnection = async () => {
     }
 }
 
-export const MINT_ADDRESS = new PublicKey("CpyfUoLpFjsCMzdWVDVEKymatW6Q3Si1AWHasvidA59M");
-export const SERVER_TOKEN_ACCOUNT_ADDRESS = new PublicKey("2SHqkgfAACoRKxY9C7mrCyF3C3NRw3kpQYb77TmqDM8e");
+// export const MINT_ADDRESS = new PublicKey("Brkh89P9dKrriUdmS5c8ZvY8dZTXjuGe3P26ByectEcW");
+// export const SERVER_TOKEN_ACCOUNT_ADDRESS = new PublicKey("2SHqkgfAACoRKxY9C7mrCyF3C3NRw3kpQYb77TmqDM8e");
 
 export const logEffortForUser = async (userPublicKey: PublicKey): Promise<string> => {
     console.log(`Logging effort for user: ${userPublicKey.toBase58()}`);
