@@ -26,11 +26,20 @@ export default function DashboardPage(props) {
         <div className="w-full max-w-5xl mx-auto p-4 sm:p-8">
             <header className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold dark:text-white">
-                    {view === 'pomodoro' ? 'Pomodoro Dashboard' : view === 'store' ? 'Store Dashboard' :'Producer Dashboard'}
+                    {view === 'pomodoro' ? 'Pomodoro Dashboard' : view === 'store' ?
+                        <div>
+                            {props.isLoadingData ? (
+                                <p>잔액 로딩 중...</p>
+                            ) : (
+                                // effortBalance 값을 바로 표시
+                                <p>{props.effortBalance.toFixed(2)} $EFFORT</p>
+                            )}
+                        </div>
+                        : 'Producer Dashboard'}
                 </h1>
                 <div className="flex items-center gap-4">
-                    {[{id:'store', icon:Store},
-                    {id:'producer', icon: Settings}].map((v) => view !== v.id ? (
+                    {[{ id: 'store', icon: Store },
+                    { id: 'producer', icon: Settings }].map((v) => view !== v.id ? (
                         <button onClick={() => handleViewChange(v.id)} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title={v.id + " 보기"}>
                             <v.icon className="dark:text-white" />
                         </button>
@@ -49,10 +58,10 @@ export default function DashboardPage(props) {
                             <ArrowLeft className="dark:text-white" />
                         </button>
                     )} */}
-                    
+
                     <WalletConnectButton />
                 </div>
-                
+
             </header>
 
             {/* ✅ 2. view 상태에 따라 분리된 컴포넌트를 렌더링합니다. */}

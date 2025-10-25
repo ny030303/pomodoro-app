@@ -25,6 +25,36 @@ export const mockLeaderboard = [
   { rank: 7, user: "kL...tY9", sessions: 85 },
 ];
 
+export const storeCharacterboard = [
+  {
+    name: "Cat",
+    description: "귀여운 치즈 고양이",
+    dir: "/assets/Cat/Cat_texture/Gemini_Generated_Image_6153bl6153bl6153/",
+    url: "/assets/Cat/Cat_", // 스켈레톤은 공통일 수 있음
+    parts: ["head", "body", "ear_left", "ear_right", "tail", "eye_left", "eye_right", "nose"],
+    position: { x: 0, y: 0 },
+    width: 180,
+    height: 180,
+    scale: 0.5,
+    initialAnimation: "idle",
+    onLoaded: () => console.log("Cat loaded!"),
+    onError: (err) => console.error("Cat error:", err),
+  },
+  {
+    name: "Rabbit",
+    description: "귀여운 갈색 토끼",
+    dir: "/assets/Rabbit/Rabbit_texture/Gemini_Generated_Image_v0ukfxv0ukfxv0uk/",
+    url: "/assets/Rabbit/Rabbit_",
+    parts: ["head", "body", "ear_left", "ear_right", "tail"],
+    width: 180,
+    height: 180,
+    position: { x: 0, y: 0 },
+    initialAnimation: "idle",
+    scale: 0.5,
+    onLoaded: () => console.log("Rabbit loaded!"),
+    onError: (err) => console.error("Rabbit error:", err),
+  },];
+
 export const mockHeatmapData = () => {
   const data = {};
   const today = new Date();
