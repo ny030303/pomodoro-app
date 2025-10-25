@@ -11,9 +11,8 @@ import type { ProvenanceProject } from '../../programs/provenance_project/target
 import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from '@solana/spl-token'; // 추가
 import { mintEffortTokenToUser } from './mintEffortToken.js';
 export const PROGRAM_ID = new PublicKey("CeHSRR3qLQjzBgmAeat75wuoeynUagCCwR1nbUNTG76T");
-export const MINT_ADDRESS = new PublicKey("7ykAXH2fidNiTeHjGfZcxMafa2XWfauskghcG6vDDPjT");
-export const SERVER_TOKEN_ACCOUNT_ADDRESS = new PublicKey("8EMfz6MbpXchvzZiAAtKed7AW7eN86bFhaA2bfpjHQNr");
-
+export const MINT_ADDRESS = new PublicKey("AReft165UUV8MAWiTm7Ezy4b9H1EK89NieezEsTbpM5E");
+export const SERVER_TOKEN_ACCOUNT_ADDRESS = new PublicKey("3876tK2CmWry3pYn3sYPbWboCVNudZpAqwDfS9kGob4i");
 // 로컬 솔라나 검증기 RPC URL
 const SOLANA_RPC_URL = 'http://127.0.0.1:8899';
 
@@ -81,12 +80,19 @@ export const logEffortForUser = async (userPublicKey: PublicKey): Promise<string
     // A string argument is now passed to the function
     .logEffort("Pomodoro session completed at " + new Date().toISOString()) 
     .accounts({
+      // --- 기존 계정들 ---
       logAccount: logAccount.publicKey,
       user: userPublicKey,
-      authority: provider.wallet.publicKey,
+      authority: provider.wallet.publicKey, // 서버 지갑
       mint: MINT_ADDRESS,
-      fromTokenAccount: SERVER_TOKEN_ACCOUNT_ADDRESS,
-    })
+      fromTokenAccount: SERVER_TOKEN_ACCOUNT_ADDRESS, // 서버의 $EFFORT 금고
+      
+      // 🌟 --- [필수] 누락된 계정들 추가 ---
+      toTokenAccount: userTokenAccountAddress, // 유저의 $EFFORT 지갑 (ATA)
+      systemProgram: SystemProgram.programId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+    }  as any)
     .signers([logAccount]) // logAccount는 새로 생성되므로 여전히 signer
     .rpc();
     console.log(`✅ Transaction confirmed with signature: ${signature}`);

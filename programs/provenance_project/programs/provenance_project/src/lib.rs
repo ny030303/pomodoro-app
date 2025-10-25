@@ -21,7 +21,7 @@ pub mod provenance_project {
         log_account.timestamp = Clock::get()?.unix_timestamp;
         log_account.effort_data = effort_data;
 
-        // ✅ --- 토큰 보상 로직 추가 ---
+        // ✅ --- 토큰 보상 로직 ---
         let amount = 10 * 10u64.pow(ctx.accounts.mint.decimals as u32); // 10 $EFFORT (소수점 고려)
 
         let cpi_accounts = Transfer {
@@ -33,6 +33,15 @@ pub mod provenance_project {
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
 
         token::transfer(cpi_ctx, amount)?;
+
+        // 🌟 --- [신규] 랭킹용 이벤트 발생 ---
+        // 뽀모도로 1회 완료 로그를 이벤트로 발생시킵니다.
+        emit!(EffortLogged {
+            user: *user.key, // 노력을 완료한 사용자
+            timestamp: log_account.timestamp, // 기록된 타임스탬프
+            sessions_logged: 1 // 1회 완료
+        });
+        // 🌟 --- 여기까지 ---
 
         Ok(())
     }
@@ -172,3 +181,13 @@ pub struct LogEffort<'info> {
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
 }
+
+// 🌟 --- [신규] 이벤트 구조체 정의 ---
+// 프로그램 최하단에 추가합니다.
+#[event]
+pub struct EffortLogged {
+    pub user: Pubkey,
+    pub timestamp: i64,
+    pub sessions_logged: u64,
+}
+// 🌟 --- 여기까지 ---

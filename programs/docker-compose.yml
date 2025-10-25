@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  solana_dev:
+  solana_dev: # 솔라나 개발 환경 
     container_name: solana_dev_env
     build:
       context: .
@@ -17,15 +17,35 @@ services:
       - solana_ledger:/app/test-ledger
     
     # 개발 작업을 위해 컨테이너를 계속 실행 상태로 유지합니다.
-    command: sleep infinity
+    command: >
+      sh -c "
+        solana-test-validator \
+          --ledger /app/test-ledger \
+          --rpc-port 8899 \
+          --faucet-port 8900 \
+          --bind-address 0.0.0.0
+      "
     ports:
     - "8899:8899" # RPC 포트
     - "8900:8900" # Faucet 포트
     environment:
       ANCHOR_PROVIDER_URL: http://localhost:8899
       ANCHOR_WALLET: /root/.config/solana/id.json
-
-# 파일 최하단에 아래 내용을 추가하여 Docker 볼륨을 정의합니다.
+  db: # MySQL 데이터베이스 서비스
+    image: mysql:8.0
+    container_name: pomodoro-db-mysql
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: pomodoro_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306" # PC에서 DB 접속 시 사용
+    restart: unless-stopped
 volumes:
   solana_config:
   solana_ledger:
+  mysql_data: # [신규] MySQL 데이터 저장을 위한 볼륨
