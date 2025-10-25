@@ -60,7 +60,59 @@ const ProducerDashboard = () => {
 
     return (
         <div className="text-white">
-            {/* ... (ProducerDashboard의 기존 JSX 코드 전체) ... */}
+            <div className="mb-8">
+                <div className="flex justify-center border-b border-gray-700">
+                    {tabs.map(tab => {
+                        const Icon = tab.icon;
+                        return (
+                             <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`flex items-center gap-2 py-4 px-6 text-sm font-medium transition-colors ${activeTab === tab.id ? 'text-green-400 border-b-2 border-green-400' : 'text-gray-400 hover:text-white'}`}
+                            >
+                                <Icon size={16} />
+                                <span>{tab.label}</span>
+                            </button>
+                        )
+                    })}
+                </div>
+            </div>
+            <main className="flex justify-center mt-8">
+                {activeTab === 'dashboard' && (
+                     <div className="w-full max-w-4xl text-center">
+                        <p className="text-gray-400 mb-6">
+                            연결된 지갑: <span className="font-mono text-green-400 bg-gray-800 px-2 py-1 rounded">{publicKey.toBase58()}</span>
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {/* ... 기존 프로듀서 대시보드 내용 ... */}
+                        </div>
+                    </div>
+                )}
+                {activeTab === 'my-recs' && (
+                    <div className="w-full max-w-4xl">
+                        <h3 className="text-2xl font-semibold mb-4 text-center">내 REC 인증서</h3>
+                        {isLoading ? (
+                            <p className="text-center">인증서를 불러오는 중...</p>
+                        ) : myRecs.length > 0 ? (
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {myRecs.map((rec) => (
+                                    <div key={rec.mintAddress} className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
+                                        <img src={rec.image} alt={rec.name} className="w-full h-48 object-cover" />
+                                        <div className="p-4">
+                                            <h4 className="font-bold text-lg truncate">{rec.name}</h4>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-center bg-gray-800 p-8 rounded-lg">보유한 REC 인증서가 없습니다.</p>
+                        )}
+                    </div>
+                )}
+                {activeTab === 'data-logs' && (
+                    <div className="p-8 bg-gray-800 rounded-lg"><p>데이터 로그 테이블이 여기에 표시됩니다.</p></div>
+                )}
+            </main>
         </div>
     );
 }
