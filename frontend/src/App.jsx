@@ -27,7 +27,7 @@ function AppContent() {
   // --- Hooks ---
   const { connected, publicKey } = useWallet();
   const { connection } = useConnection();
-  const { effortBalance, onChainActivity, isLoadingData, statsData, isLoadingStats, refetchData, fetchStatisticsData } = usePomodoroData(initialRecentActivity);
+  const { effortBalance, onChainActivity, isLoadingData, statsData, isLoadingStats, refetchData, fetchStatisticsData, purchaseItemClient } = usePomodoroData(initialRecentActivity);
   
   // --- State ---
   const [theme, setTheme] = useState('dark');
@@ -57,7 +57,7 @@ function AppContent() {
 
   const handleSessionComplete = async () => {
     const sessionType = timerMode;
-
+    console.log(`sessionType: ${sessionType}`);
     if (sessionType === 'focus') {
       if (!publicKey) {
         alert("Please connect your wallet to prove your effort.");
@@ -128,6 +128,7 @@ function AppContent() {
           statsData={statsData} // ⬅️ 추가
           isLoadingStats={isLoadingStats} // ⬅️ 추가
           fetchStatisticsData={fetchStatisticsData} // ⬅️ 추가
+          purchaseItemClient={purchaseItemClient}
         />;
     }
   };

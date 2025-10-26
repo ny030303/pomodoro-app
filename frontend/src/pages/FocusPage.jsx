@@ -79,7 +79,7 @@ export default function FocusPage({ onExit, duration, onComplete }) {
                           <h3 className="text-xl text-gray-900 dark:text-white font-bold mb-4">집중을 포기하시겠습니까?</h3>
                           <p className="text-gray-500 dark:text-gray-400 mb-8">현재 세션은 저장되지 않습니다.</p>
                           <div className="flex gap-4">
-                              <button onClick={() => setShowExitPopup(false)} className="bg-gray-300 dark:bg-gray-600 text-gray-900 dark:text-white py-2 px-6 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 w-full">계속 집중</button>
+                              <button onClick={() => setShowExitPopup(false)} className="bg-gray-300 dark:bg-gray-600 text-gray-900 dark:text-white py-2 px-6 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 w-full">유지</button>
                               <button onClick={onExit} className="bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-500 w-full">포기</button>
                           </div>
                       </div>

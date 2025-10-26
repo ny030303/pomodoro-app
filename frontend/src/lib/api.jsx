@@ -38,5 +38,33 @@ export const logEffortOnChain = async (userPublicKey) => {
   }
 };
 
+export const purchaseCreateTx = async (item) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/purchase/create-tx`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ ...item }),
+    });
+
+    // response.ok가 false이면 HTTP 에러 상태 코드를 받은 것입니다.
+    if (!response.ok) {
+      // 서버가 JSON 형태로 에러 메시지를 보냈을 경우를 대비해 body를 파싱합니다.
+      const errorData = await response.json().catch(() => ({ message: '서버 응답을 파싱할 수 없습니다.' }));
+      throw new Error(errorData.message || `HTTP 에러 발생! Status: ${response.status}`);
+    }
+
+    // 성공적인 응답의 body를 JSON으로 파싱하여 반환합니다.
+    return await response.json();
+
+  } catch (error) {
+    // 네트워크 문제나 위에서 발생시킨 에러를 다시 throw하여 호출한 쪽에서 처리하도록 합니다.
+    console.error('API 요청 중 에러 발생:', error);
+    // 더 구체적인 에러 메시지를 전달합니다.
+    throw new Error(error.message || '네트워크 요청에 실패했습니다. 서버 상태를 확인해주세요.');
+  }
+};
+
 // 나중에 추가될 다른 API 함수들
 // 예: export const getLeaderboardData = async () => { ... };

@@ -39,7 +39,7 @@ const DragonBonesComponent = ({
 
         // 1. 스켈레톤 JSON 파일 로드
         const skeletonPath = characterUrl + "ske.json";
-        console.log(`🔍 [${characterId || 'Character'}] Loading skeleton from:`, skeletonPath);
+        // console.log(`🔍 [${characterId || 'Character'}] Loading skeleton from:`, skeletonPath);
         
         const skeResponse = await fetch(skeletonPath);
         
@@ -54,22 +54,22 @@ const DragonBonesComponent = ({
         
         const skeJson = await skeResponse.json();
         const dragonBonesName = skeJson.name; // DragonBones 데이터의 고유 이름
-        console.log(`✓ [${characterId || 'Character'}] Skeleton loaded:`, dragonBonesName);
+        // console.log(`✓ [${characterId || 'Character'}] Skeleton loaded:`, dragonBonesName);
 
         if (destroyed) return;
 
         // 2. 텍스처 로드
-        console.log(`🔍 [${characterId || 'Character'}] Loading textures from:`, assetDir);
+        // console.log(`🔍 [${characterId || 'Character'}] Loading textures from:`, assetDir);
 
         const texturePromises = parts.map(async (name) => {
           const path = assetDir + `${name}.png`;
           try {
             const texture = await PIXI.Assets.load(path);
-            console.log(`  ✓ [${characterId || 'Character'}] Loaded: ${name}`);
+            // console.log(`  ✓ [${characterId || 'Character'}] Loaded: ${name}`);
             return { name, texture, success: true };
           } catch (err) {
             console.error(`  ✗ [${characterId || 'Character'}] Failed: ${name} - ${err.message}`);
-            return { name, texture: null, success: false, error: err };
+            // return { name, texture: null, success: false, error: err };
           }
         });
 
@@ -87,9 +87,9 @@ const DragonBonesComponent = ({
         // 이미 등록된 DragonBones 데이터인지 확인
         if (!factory.getDragonBonesData(dragonBonesName)) {
           factory.parseDragonBonesData(skeJson);
-          console.log(`✓ [${characterId || 'Character'}] DragonBones data parsed: ${dragonBonesName}`);
+          // console.log(`✓ [${characterId || 'Character'}] DragonBones data parsed: ${dragonBonesName}`);
         } else {
-          console.log(`ℹ️ [${characterId || 'Character'}] DragonBones data already exists: ${dragonBonesName}`);
+          // console.log(`ℹ️ [${characterId || 'Character'}] DragonBones data already exists: ${dragonBonesName}`);
         }
 
         const armatureName = skeJson.armature[0]?.name;
@@ -114,10 +114,10 @@ const DragonBonesComponent = ({
               sprite.anchor.set(0.5);
               slot.setDisplay(sprite, true);
             } else {
-              console.warn(`[${characterId || 'Character'}] Slot ${slotName} exists but texture not found`);
+              // console.warn(`[${characterId || 'Character'}] Slot ${slotName} exists but texture not found`);
             }
           } else {
-            console.warn(`[${characterId || 'Character'}] Slot ${slotName} not found in armature`);
+            // console.warn(`[${characterId || 'Character'}] Slot ${slotName} not found in armature`);
           }
         });
 
@@ -141,7 +141,7 @@ const DragonBonesComponent = ({
         container.addChild(armatureDisplay);
         armatureDisplayRef.current = armatureDisplay;
 
-        console.log(`✅ [${characterId || 'Character'}] Loaded successfully at (${armatureDisplay.x}, ${armatureDisplay.y})`);
+        // console.log(`✅ [${characterId || 'Character'}] Loaded successfully at (${armatureDisplay.x}, ${armatureDisplay.y})`);
         
         if (onLoaded) {
           onLoaded(armatureDisplay);
@@ -169,7 +169,7 @@ const DragonBonesComponent = ({
         containerRef.current = null;
       }
       
-      console.log(`🗑️ [${characterId || 'Character'}] Cleaned up`);
+      // console.log(`🗑️ [${characterId || 'Character'}] Cleaned up`);
     };
   }, [app, assetDir, characterUrl, baseWidth, baseHeight, parts, initialAnimation, position, scale, loop, onLoaded, onError, characterId]);
 

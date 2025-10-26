@@ -27,6 +27,8 @@ export const mockLeaderboard = [
 
 export const storeCharacterboard = [
   {
+    itemId: 1,
+    price: 200,
     name: "Cat",
     description: "귀여운 치즈 고양이",
     dir: "/assets/Cat/Cat_texture/Gemini_Generated_Image_6153bl6153bl6153/",
@@ -41,6 +43,8 @@ export const storeCharacterboard = [
     onError: (err) => console.error("Cat error:", err),
   },
   {
+    itemId: 2,
+    price: 200,
     name: "Rabbit",
     description: "귀여운 갈색 토끼",
     dir: "/assets/Rabbit/Rabbit_texture/Gemini_Generated_Image_v0ukfxv0ukfxv0uk/",

@@ -38,8 +38,7 @@ export default function DashboardPage(props) {
                         : 'Producer Dashboard'}
                 </h1>
                 <div className="flex items-center gap-4">
-                    {[{ id: 'store', icon: Store },
-                    { id: 'producer', icon: Settings }].map((v) => view !== v.id ? (
+                    {[{ id: 'store', icon: Store }, { id: 'producer', icon: Settings }].map((v) => view !== v.id ? (
                         <button onClick={() => handleViewChange(v.id)} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title={v.id + " 보기"}>
                             <v.icon className="dark:text-white" />
                         </button>

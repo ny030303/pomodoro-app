@@ -1,6 +1,7 @@
 import { Application, extend, } from '@pixi/react';
 import { Container, Graphics, Sprite } from 'pixi.js';
 import DragonBonesComponent from '../dashboard/DragonBonesComponent';
+import { storeCharacterboard } from '../../constants/mockData';
 extend({ Container, Graphics, Sprite });
 extend({ Container, Graphics }); // Pixi 컴포넌트 등록
 
@@ -13,8 +14,9 @@ const MyScene = () => {
       // <Application width={400} height={600} options={{ backgroundAlpha: 0 }}>
       <Application width={260} height={260} backgroundAlpha={0}>
         <DragonBonesComponent
-          assetDir="/assets/Rabbit/Rabbit_texture/Gemini_Generated_Image_v0ukfxv0ukfxv0uk/"
-          characterUrl="/assets/Rabbit/Rabbit_"
+          assetDir={storeCharacterboard[0].assetDir}
+          characterUrl={storeCharacterboard[0].characterUrl}
+          parts={storeCharacterboard[0].parts}
           onError={(error) => {
             console.log(`캐릭터 로딩 실패: ${error.message}`);
           }} />

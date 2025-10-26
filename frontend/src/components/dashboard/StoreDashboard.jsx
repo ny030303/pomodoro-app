@@ -1,7 +1,7 @@
 // src/components/dashboard/StoreDashboard.jsx
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { BarChart2, Award, Database, PersonStanding, Palette, HatGlasses, UserRound } from 'lucide-react';
 import { storeCharacterboard } from '../../constants/mockData';
 import { Application, extend, } from '@pixi/react';
@@ -14,8 +14,15 @@ extend({ Container, Graphics }); // Pixi 컴포넌트 등록
 
 const StoreDashboard = (props) => {
     const [selectedItem, setSelectedItem] = useState(null);
+    const { publicKey } = useWallet();
+    const { connection } = useConnection();
+
+    const [isBuying, setIsBuying] = useState(false);
 
     const [activeTab, setActiveTab] = useState('charactor');
+    const [isLoading, setIsLoading] = useState(false);
+    const [txSignature, setTxSignature] = useState(null);
+    const [error, setError] = useState(null);
     const tabs = [
         { id: 'charactor', label: '캐릭터', icon: PersonStanding },
         { id: 'theme', label: '테마', icon: Palette },
@@ -23,6 +30,33 @@ const StoreDashboard = (props) => {
         { id: 'my', label: 'MY', icon: UserRound },
     ];
 
+    const handleBuy = async (item) => {
+        if (!publicKey) {
+            alert("지갑을 연결해주세요.");
+            return;
+        }
+        setError(null);
+        setTxSignature(null);
+        setIsLoading(true);
+        setIsBuying(true);
+        try {
+            const symbol = "POMO";
+            const uri = "https://example.com/metadata.json";
+
+            // purchaseItemClient 호출
+            const txHash = await props.purchaseItemClient(item.itemId, item.price, item.name, symbol, uri);
+            setTxSignature(sig);
+
+            // 트랜잭션 상태 확인 UI (옵션)
+            await connection.confirmTransaction(sig, 'confirmed');
+        } catch (error) {
+            console.error("구매 실패:", error);
+            setError('구매 중 오류가 발생했습니다. 다시 시도해주세요.');
+        } finally {
+            setIsBuying(false);
+            setIsLoading(false);
+        }
+    };
 
     return (
         <div className="text-white">
@@ -41,6 +75,18 @@ const StoreDashboard = (props) => {
                     })}
                 </div>
             </div>
+            {txSignature && (
+                <p>
+                    구매 완료! 트랜잭션 시그니처:{' '}
+                    <a
+                        href={`https://explorer.solana.com/tx/${txSignature}?cluster=custom&customUrl=${encodeURIComponent(import.meta.env.VITE_SOLANA_RPC_HOST)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        {txSignature.slice(0, 8)}... 보기
+                    </a>
+                </p>
+            )}
             <main className="flex justify-center mt-8">
                 {activeTab === 'charactor' && (
                     <div className="w-full max-w-4xl text-center">
@@ -79,8 +125,11 @@ const StoreDashboard = (props) => {
                                     <h3 className="text-2xl text-gray-900 dark:text-white font-bold mb-2">{selectedItem.name}</h3>
                                     <p className="text-gray-600 dark:text-gray-400 mb-4">{selectedItem.description}</p>
 
-                                    <button className="w-full bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 font-semibold py-3 px-4 rounded-lg cursor-not-allowed">
-                                        마켓플레이스에 등록 (준비 중)
+                                    <button
+                                        onClick={() => handleBuy(selectedItem)}
+                                        disabled={isLoading}
+                                        className="w-full bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 font-semibold py-3 px-4 rounded-lg">
+                                        {isLoading ? '구매 중...' : '아이템 구매'}
                                     </button>
                                 </StoreModal>
                             )}
