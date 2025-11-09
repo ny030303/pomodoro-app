@@ -1,5 +1,12 @@
 // backend/src/solana.ts
 import { Connection, Keypair, PublicKey, SystemProgram, Transaction, sendAndConfirmTransaction, SYSVAR_RENT_PUBKEY } from '@solana/web3.js';
+import { 
+    createCreateMetadataAccountV3Instruction, 
+    createCreateMasterEditionV3Instruction,
+    PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID,
+    createCreateMasterEditionInstruction
+} from '@metaplex-foundation/mpl-token-metadata';
+
 import fs from 'fs/promises';
 // 수정: 필요한 모듈들을 추가로 가져옵니다.
 import path, { dirname } from 'path';
@@ -11,11 +18,14 @@ import idl from '../../programs/provenance_project/target/idl/provenance_project
 
 import type { ProvenanceProject } from '../../programs/provenance_project/target/types/provenance_project.js';
 import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from '@solana/spl-token'; // 추가
+import dotenv from 'dotenv';
+dotenv.config();
 // 프로그램 ID와 필요한 상수 (사용자 환경에 맞게 변경)
-export const PROGRAM_ID = new PublicKey("CeHSRR3qLQjzBgmAeat75wuoeynUagCCwR1nbUNTG76T");
-export const MINT_ADDRESS = new PublicKey("BmtXTtaM5H3M1Q45bku7q4q6HztQsrkonpZECEKnYBBT");
-export const SERVER_TOKEN_ACCOUNT_ADDRESS = new PublicKey("GhosvYTEdtRZfTpgC69dLQKRHqmA1VU43AaerW8ywibi");
-const SOLANA_RPC_URL = 'http://127.0.0.1:8899';
+export const PROGRAM_ID = new PublicKey(process.env.PROGRAM_ID as string);
+export const MINT_ADDRESS = new PublicKey(process.env.MINT_ADDRESS as string);
+export const SERVER_TOKEN_ACCOUNT_ADDRESS = new PublicKey(process.env.SERVER_TOKEN_ACCOUNT_ADDRESS as string);
+const COLLECTION_MINT_ADDRESS= process.env.COLLECTION_MINT_ADDRESS as string;
+const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL as string;
 
 // 1. 솔라나 커넥션 생성
 export const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
@@ -39,9 +49,9 @@ export const getServerKeypair = async (): Promise<Keypair> => {
   }
 };
 
-const TOKEN_METADATA_PROGRAM_ID = new PublicKey(
-  'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s'
-);
+// const TOKEN_METADATA_PROGRAM_ID = new PublicKey(
+//   'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s'
+// );
 async function getMetadataPDA(mint: PublicKey): Promise<[PublicKey, number]> {
   return PublicKey.findProgramAddress(
     [
@@ -205,39 +215,43 @@ export const logEffortForUser = async (userPublicKey: PublicKey): Promise<string
 // 🚨 [수정] 'purchaseItem' 함수를 'createPurchaseTransaction'으로 변경
 // 이 함수는 트랜잭션을 *전송*하는 대신, *부분 서명된 트랜잭션*을 생성하여 반환합니다.
 export const createPurchaseTransaction = async (
-    buyerPublicKey: PublicKey, // 💡 Keypair가 아닌 PublicKey를 받습니다.
-    itemId: number,            // 💡 스마트 컨트랙트와 일치하도록 string (또는 맞는 타입)
-    price: number,             // 💡 BN으로 변환될 숫자
+    buyerPublicKey: PublicKey,
+    itemId: number,
+    price: number,
     name: string,
     symbol: string,
     uri: string
-): Promise<string> => { // 💡 Base64 문자열을 반환합니다.
+): Promise<string> => {
     const serverKeypair = await getServerKeypair();
     const wallet = new Wallet(serverKeypair);
-    
     const provider = new AnchorProvider(connection, wallet, AnchorProvider.defaultOptions());
+    // @ts-ignore
     const program = new Program<ProvenanceProject>(idl, provider);
 
-    // --- 서버 측에서 키 생성 및 계정 계산 ---
-    const nftMint = Keypair.generate(); // 💡 NFT 민트 키페어는 서버가 생성
-
+    // --- 계정 준비 ---
+    const nftMint = Keypair.generate();
     const userNftTokenAddress = getAssociatedTokenAddressSync(nftMint.publicKey, buyerPublicKey);
     const buyerEffortTokenAddress = getAssociatedTokenAddressSync(MINT_ADDRESS, buyerPublicKey);
     
-    // PDA 계산
-    const metadataAccount = (await getMetadataPDA(nftMint.publicKey))[0];
-    const masterEditionAccount = (await getMasterEditionPDA(nftMint.publicKey))[0];
-    
-    // --- 트랜잭션 빌드 ---
-    // 💡 .rpc()가 아닌 .transaction()을 호출하여 트랜잭션 객체만 받습니다.
+    // 헬퍼 함수 대신 직접 계산 (혹은 기존 헬퍼 사용해도 무방)
+    const [metadataAccount] = PublicKey.findProgramAddressSync(
+        [Buffer.from('metadata'), TOKEN_METADATA_PROGRAM_ID.toBuffer(), nftMint.publicKey.toBuffer()],
+        TOKEN_METADATA_PROGRAM_ID
+    );
+    const [masterEditionAccount] = PublicKey.findProgramAddressSync(
+        [Buffer.from('metadata'), TOKEN_METADATA_PROGRAM_ID.toBuffer(), nftMint.publicKey.toBuffer(), Buffer.from('edition')],
+        TOKEN_METADATA_PROGRAM_ID
+    );
+
+    // --- 1. Anchor 트랜잭션 기본 생성 ($EFFORT 지불 + 껍데기 민팅) ---
     const transaction = await program.methods
-        .purchaseItem(itemId, new BN(price), name, symbol, uri) // 💡 price를 new BN()으로 감싸기
+        .purchaseItem(itemId, new BN(price), name, symbol, uri)
         .accounts({
-            buyer: buyerPublicKey, // 💡 구매자 (클라이언트가 서명)
-            authority: serverKeypair.publicKey, // 💡 서버 권한 (서버가 서명)
+            buyer: buyerPublicKey,
+            authority: serverKeypair.publicKey,
             buyerTokenAccount: buyerEffortTokenAddress,
             treasuryTokenAccount: SERVER_TOKEN_ACCOUNT_ADDRESS,
-            nftMint: nftMint.publicKey, // 💡 NFT 민트 (서버가 서명)
+            nftMint: nftMint.publicKey,
             userNftAccount: userNftTokenAddress,
             metadataAccount: metadataAccount,
             masterEditionAccount: masterEditionAccount,
@@ -247,28 +261,56 @@ export const createPurchaseTransaction = async (
             rent: SYSVAR_RENT_PUBKEY,
             tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
         } as any)
-        .transaction(); // 💡 .rpc() 아님!
+        .transaction();
 
-    // --- 서버 측 서명 수행 ---
-    transaction.feePayer = buyerPublicKey; // 💡 수수료 지불자는 구매자(클라이언트)
-    
-    // 💡 최신 블록해시를 설정합니다. (클라이언트가 덮어쓸 수도 있지만, 설정해주는 것이 좋음)
+    // --- 2. [중요] Metaplex 명령어 추가 (껍데기에 데이터 입히기) ---
+    // (a) 메타데이터 생성 (이름, 이미지 URI 등 연결)
+    transaction.add(createCreateMetadataAccountV3Instruction(
+        {
+            metadata: metadataAccount,
+            mint: nftMint.publicKey,
+            mintAuthority: serverKeypair.publicKey,
+            payer: buyerPublicKey, // 수수료는 구매자가 부담 (혹은 serverKeypair로 변경 가능)
+            updateAuthority: serverKeypair.publicKey,
+        },
+        {
+            createMetadataAccountArgsV3: {
+                data: {
+                    name: name,
+                    symbol: symbol,
+                    uri: uri,
+                    sellerFeeBasisPoints: 0,
+                    creators: null, collection: null, uses: null,
+                },
+                isMutable: false, collectionDetails: null,
+            },
+        }
+    ));
+
+    // (b) 마스터 에디션 생성 (NFT로 확정)
+    transaction.add(createCreateMasterEditionV3Instruction(
+        {
+            edition: masterEditionAccount,
+            mint: nftMint.publicKey,
+            updateAuthority: serverKeypair.publicKey,
+            mintAuthority: serverKeypair.publicKey,
+            payer: buyerPublicKey, // 수수료 구매자 부담
+            metadata: metadataAccount,
+        },
+        { createMasterEditionArgs: { maxSupply: 0 } }
+    ));
+
+    // --- 3. 트랜잭션 설정 및 부분 서명 ---
     const latestBlockhash = await connection.getLatestBlockhash();
     transaction.recentBlockhash = latestBlockhash.blockhash;
     transaction.lastValidBlockHeight = latestBlockhash.lastValidBlockHeight;
+    transaction.feePayer = buyerPublicKey; // 최종 수수료 지불자 = 사용자
 
-    // 💡 서버가 서명해야 하는 계정들로 부분 서명(partialSign)을 수행합니다.
-    transaction.partialSign(serverKeypair); // 1. 서버 권한 계정
-    transaction.partialSign(nftMint);       // 2. 새로 생성된 NFT 민트 계정
+    // 서버가 필요한 부분 서명 수행
+    transaction.partialSign(serverKeypair); // authority 서명
+    transaction.partialSign(nftMint);       // 새 Mint 계정 서명
 
-    // --- 직렬화 ---
-    // '구매자'의 서명이 아직 빠져있으므로, `requireAllSignatures: false` 옵션으로 직렬화합니다.
-    const serializedTransaction = transaction.serialize({
-        requireAllSignatures: false, 
-    });
-
-    const base64Transaction = serializedTransaction.toString('base64');
-    
-    console.log(`[API] 부분 서명된 구매 트랜잭션 생성 완료 (구매자: ${buyerPublicKey.toBase58()})`);
-    return base64Transaction;
+    // --- 4. 직렬화 및 반환 ---
+    console.log(`[API] 부분 서명된 트랜잭션 생성 완료 (Item: ${name})`);
+    return transaction.serialize({ requireAllSignatures: false }).toString('base64');
 };

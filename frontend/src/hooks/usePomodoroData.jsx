@@ -73,7 +73,7 @@ export const usePomodoroData = (initialActivity) => {
 
         try {
             // 최근 트랜잭션 20개 조회
-            const signatures = await connection.getSignaturesForAddress(publicKey, { limit: 20 });
+            const signatures = await connection.getSignaturesForAddress(publicKey, { limit: 10 });
             const validSignatures = signatures.filter(s => !s.err);
             const transactions = await connection.getParsedTransactions(validSignatures.map(s => s.signature), { maxSupportedTransactionVersion: 0 });
 
@@ -103,10 +103,23 @@ export const usePomodoroData = (initialActivity) => {
 
         try {
             console.log("[Stats Debug] Fetching up to 1000 transactions for statistics...");
-            const signatures = await connection.getSignaturesForAddress(publicKey, { limit: 1000 });
+            const signatures = await connection.getSignaturesForAddress(publicKey, { limit: 10 });
             const validSignatures = signatures.filter(s => !s.err);
-            const transactions = await connection.getParsedTransactions(validSignatures.map(s => s.signature), { maxSupportedTransactionVersion: 0 });
-
+            // const transactions = await connection.getParsedTransactions(validSignatures.map(s => s.signature), { maxSupportedTransactionVersion: 0 });
+            const transactions = [];
+            for (const sig of validSignatures) {
+                try {
+                    // 하나씩 요청
+                    const tx = await connection.getParsedTransaction(sig.signature, {
+                        maxSupportedTransactionVersion: 0
+                    });
+                    if (tx) transactions.push(tx);
+                     // 너무 빠르면 429 에러가 날 수 있으니 아주 약간 대기
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                } catch (e) {
+                    console.warn("개별 트랜잭션 조회 실패:", e);
+                }
+            }
             console.log(`[Stats Debug] Found ${transactions.length} total transactions.`);
 
             const effortTimestamps = transactions
